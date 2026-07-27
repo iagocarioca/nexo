@@ -1,0 +1,80 @@
+name: Deploy Nexo Player
+
+# Sobe o plugin pros sites WordPress via FTP quando houver push na main.
+# Cada site é um GitHub Environment (pornoreels, ...) com seus próprios
+# secrets/vars. Sites sem configuração são PULADOS (não dão erro).
+# Configure em: Settings → Environments.
+#   Secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+#   Vars:    FTP_SERVER_DIR (terminando com /), FTP_PORT (opcional), FTP_PROTOCOL (opcional)
+# Para adicionar um site novo: crie o Environment e acrescente o nome na matrix abaixo.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-nexo-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.site }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        site: [pornoreels]
+    environment: ${{ matrix.site }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verifica FTP (pula o site se não estiver configurado)
+        id: check
+        shell: bash
+        run: |
+          if [ -z "$FTP_SERVER" ] || [ -z "$FTP_USERNAME" ] || [ -z "$FTP_PASSWORD" ] || [ -z "$FTP_SERVER_DIR" ]; then
+            echo "::warning::Site '${{ matrix.site }}' não configurado (faltam secrets/vars de FTP) — pulando."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$FTP_SERVER_DIR" != */ ]]; then
+            echo "::error::FTP_SERVER_DIR precisa terminar com / (site: ${{ matrix.site }})"
+            exit 1
+          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR }}
+
+      - name: Upload do plugin via FTP
+        if: steps.check.outputs.deploy == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ vars.FTP_PORT || 21 }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftp' }}
+          local-dir: ./
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/vendor/**
+            **/*.md
+            **/*.map
+            **/.DS_Store
+            **/.gitignore

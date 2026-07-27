@@ -1,0 +1,8 @@
+/* Nexo Player — admin */
+.nexop-mb__campo { margin: 0 0 16px; }
+.nexop-mb__campo label { display: block; margin-bottom: 5px; }
+.nexop-mb__campo .description { display: block; margin-top: 4px; color: #777; }
+.nexop-mb__upload { display: flex; gap: 8px; align-items: flex-start; }
+.nexop-mb__upload input { flex: 1; }
+.nexop-mb .nexop-mb__campo--metade { display: inline-block; width: 48%; vertical-align: top; }
+.nexop-mb .nexop-mb__campo--metade:first-of-type { margin-right: 3%; }

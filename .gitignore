@@ -1,0 +1,12 @@
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+*.map
+.idea/
+.vscode/
+
+# Dev (caso um dia adicione build)
+node_modules/
+vendor/
+.cache/

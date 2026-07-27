@@ -12,12 +12,12 @@ Push na `main` → GitHub Actions sobe o plugin via FTP para os sites configurad
 
 | Tipo   | Nome             | Exemplo                              |
 |--------|------------------|--------------------------------------|
-| Secret | `FTP_SERVER`     | `ftp.seusite.com`                    |
+| Secret | `FTP_SERVER`     | IP/host de origem (domínio proxied pelo Cloudflare NÃO funciona) |
 | Secret | `FTP_USERNAME`   | `usuario`                            |
 | Secret | `FTP_PASSWORD`   | `…`                                  |
-| Var    | `FTP_SERVER_DIR` | `/wp-content/plugins/nexo-player/` (precisa terminar com `/`) |
-| Var    | `FTP_PORT`       | opcional (padrão 21)                 |
-| Var    | `FTP_PROTOCOL`   | opcional (`ftp` ou `ftps`)           |
+| Var    | `FTP_SERVER_DIR` | caminho completo no servidor, terminando com `/` — no SFTP é o caminho real, ex.: `/home/usuario/public_html/wp-content/plugins/nexo-player/` |
+| Var    | `FTP_PORT`       | opcional (padrão: 22 no sftp, 21 no ftp/ftps) |
+| Var    | `FTP_PROTOCOL`   | opcional: `sftp` (padrão), `ftp` ou `ftps` |
 
 Sites sem environment configurado são pulados sem erro. Para adicionar um site,
 crie o environment e acrescente o nome na `matrix.site` do workflow.

@@ -6,6 +6,7 @@ name: Deploy Nexo Player
 # Configure em: Settings → Environments.
 #   Secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
 #   Vars:    FTP_SERVER_DIR (terminando com /), FTP_PORT (opcional), FTP_PROTOCOL (opcional)
+#   Hosts que exigem TLS explicito: setar FTP_PROTOCOL=ftps (o padrao aqui e ftp puro).
 # Para adicionar um site novo: crie o Environment e acrescente o nome na matrix abaixo.
 
 on:

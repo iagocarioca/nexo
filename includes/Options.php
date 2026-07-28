@@ -36,6 +36,9 @@ class Options {
 			// Embed: mostra capa própria e só carrega o iframe do tube no clique
 			// (nada do site de origem aparece antes do play).
 			'embed_capa'     => 1,
+			// Embed: busca o MP4 direto na página do embed (html5player.setVideoUrlLow)
+			// e toca no player próprio em vez do iframe.
+			'embed_extrair'  => 1,
 			// Marca d'água.
 			'logo_url'       => '',
 			'logo_pos'       => 'top-right', // top-left | top-right | bottom-left | bottom-right

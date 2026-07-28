@@ -49,6 +49,7 @@ class Settings {
 		$clean['continuar_min']    = min( 600, max( 3, absint( $in['continuar_min'] ?? 10 ) ) );
 		$clean['responsivo']       = empty( $in['responsivo'] ) ? 0 : 1;
 		$clean['embed_capa']       = empty( $in['embed_capa'] ) ? 0 : 1;
+		$clean['embed_extrair']    = empty( $in['embed_extrair'] ) ? 0 : 1;
 		$clean['cor']              = sanitize_hex_color( $in['cor'] ?? '' ) ?: Options::defaults()['cor'];
 		$clean['logo_url']         = esc_url_raw( $in['logo_url'] ?? '' );
 		$clean['logo_pos']         = in_array( $in['logo_pos'] ?? '', array( 'top-left', 'top-right', 'bottom-left', 'bottom-right' ), true ) ? $in['logo_pos'] : 'top-right';
@@ -98,6 +99,10 @@ class Settings {
 					<tr>
 						<th><?php esc_html_e( 'Capa no embed', 'nexo-player' ); ?></th>
 						<td><label><input type="checkbox" name="<?php echo esc_attr( Options::KEY ); ?>[embed_capa]" value="1" <?php checked( $o['embed_capa'] ); ?>> <?php esc_html_e( 'Mostrar capa própria e só carregar o player do tube no clique (esconde a marca do site de origem antes do play; requer capa/thumbnail no post)', 'nexo-player' ); ?></label></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'MP4 direto do embed', 'nexo-player' ); ?></th>
+						<td><label><input type="checkbox" name="<?php echo esc_attr( Options::KEY ); ?>[embed_extrair]" value="1" <?php checked( $o['embed_extrair'] ); ?>> <?php esc_html_e( 'Ler a página do embed e tocar o arquivo MP4 no player próprio (html5player.setVideoUrlLow). Se não encontrar, cai no iframe normal.', 'nexo-player' ); ?></label></td>
 					</tr>
 					<tr>
 						<th><label for="nexop_cor"><?php esc_html_e( 'Cor de destaque', 'nexo-player' ); ?></label></th>

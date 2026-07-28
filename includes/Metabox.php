@@ -15,6 +15,7 @@ class Metabox {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add' ) );
 		add_action( 'save_post', array( __CLASS__, 'save' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_action( 'wp_ajax_nexop_extrair', array( __CLASS__, 'ajax_extrair' ) );
 	}
 
 	public static function add(): void {
@@ -30,6 +31,36 @@ class Metabox {
 		wp_enqueue_media();
 		wp_enqueue_style( 'nexop-admin', NEXOP_URL . 'assets/admin.css', array(), NEXOP_VERSION );
 		wp_enqueue_script( 'nexop-admin', NEXOP_URL . 'assets/admin.js', array( 'jquery' ), NEXOP_VERSION, true );
+		wp_localize_script(
+			'nexop-admin',
+			'NexoPlayerAdmin',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'nexop_extrair' ),
+				'postId'  => (int) get_the_ID(),
+			)
+		);
+	}
+
+	/** AJAX: lê a página do embed e devolve o MP4 encontrado. */
+	public static function ajax_extrair(): void {
+		check_ajax_referer( 'nexop_extrair', 'nonce' );
+
+		$post_id = absint( $_POST['post_id'] ?? 0 );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( array( 'msg' => __( 'Sem permissão.', 'nexo-player' ) ), 403 );
+		}
+
+		$embed = self::sanitize_embed( (string) wp_unslash( $_POST['embed'] ?? '' ) );
+		if ( '' === $embed ) {
+			wp_send_json_error( array( 'msg' => __( 'Preencha o campo de embed primeiro.', 'nexo-player' ) ) );
+		}
+
+		$mp4 = Resolver::for_post( $post_id, $embed, true );
+		if ( '' === $mp4 ) {
+			wp_send_json_error( array( 'msg' => __( 'Não encontrei setVideoUrlLow nessa página de embed.', 'nexo-player' ) ) );
+		}
+		wp_send_json_success( array( 'mp4' => $mp4 ) );
 	}
 
 	public static function render( \WP_Post $post ): void {
@@ -40,6 +71,7 @@ class Metabox {
 		$tempo  = get_post_meta( $post->ID, '_nexop_tempo', true );
 		$rel    = get_post_meta( $post->ID, '_nexop_relacionados', true );
 		$rel    = ( '' === $rel ) ? '1' : $rel;
+		$auto   = (string) get_post_meta( $post->ID, Resolver::META_URL, true );
 		?>
 		<div class="nexop-mb">
 			<p class="nexop-mb__campo">
@@ -52,8 +84,19 @@ class Metabox {
 
 			<p class="nexop-mb__campo">
 				<label><strong><?php esc_html_e( 'Código de embed (opcional)', 'nexo-player' ); ?></strong></label>
-				<textarea name="nexop_embed" rows="3" class="widefat" placeholder="<?php esc_attr_e( 'Cole o <iframe> de embed do tube (Xvideos, Pornhub, etc.)', 'nexo-player' ); ?>"><?php echo esc_textarea( $embed ); ?></textarea>
+				<textarea name="nexop_embed" id="nexop_embed" rows="3" class="widefat" placeholder="<?php esc_attr_e( 'Cole o <iframe> de embed do tube (Xvideos, Pornhub, etc.)', 'nexo-player' ); ?>"><?php echo esc_textarea( $embed ); ?></textarea>
 				<span class="description"><?php esc_html_e( 'Se preencher os dois, o MP4 tem prioridade.', 'nexo-player' ); ?></span>
+			</p>
+
+			<p class="nexop-mb__campo">
+				<button type="button" class="button" id="nexop_extrair"><?php esc_html_e( 'Extrair MP4 do embed', 'nexo-player' ); ?></button>
+				<span class="description" id="nexop_extrair_status">
+					<?php
+					echo $auto
+						? esc_html__( 'MP4 encontrado:', 'nexo-player' ) . ' ' . esc_html( $auto )
+						: esc_html__( 'Busca html5player.setVideoUrlLow na página do embed e toca no player próprio.', 'nexo-player' );
+					?>
+				</span>
 			</p>
 
 			<p class="nexop-mb__campo">
@@ -94,8 +137,13 @@ class Metabox {
 
 		update_post_meta( $post_id, '_nexop_mp4', esc_url_raw( wp_unslash( $_POST['nexop_mp4'] ?? '' ) ) );
 		// Embed pode conter <iframe>: permite só a tag iframe.
-		$embed = wp_unslash( $_POST['nexop_embed'] ?? '' );
-		update_post_meta( $post_id, '_nexop_embed', self::sanitize_embed( $embed ) );
+		$embed = self::sanitize_embed( (string) wp_unslash( $_POST['nexop_embed'] ?? '' ) );
+		$antes = (string) get_post_meta( $post_id, '_nexop_embed', true );
+		update_post_meta( $post_id, '_nexop_embed', $embed );
+		if ( $embed !== $antes ) {
+			// Embed mudou: o MP4 extraído do anterior não vale mais.
+			Resolver::limpar( $post_id );
+		}
 		update_post_meta( $post_id, '_nexop_poster', esc_url_raw( wp_unslash( $_POST['nexop_poster'] ?? '' ) ) );
 		update_post_meta( $post_id, '_nexop_tempo', sanitize_text_field( wp_unslash( $_POST['nexop_tempo'] ?? '' ) ) );
 		update_post_meta( $post_id, '_nexop_relacionados', ( '0' === ( $_POST['nexop_relacionados'] ?? '1' ) ) ? '0' : '1' );

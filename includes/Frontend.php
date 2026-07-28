@@ -58,7 +58,13 @@ class Frontend {
 			return '';
 		}
 
-		$o      = Options::all();
+		$o = Options::all();
+
+		// Sem MP4 próprio: tenta pegar o arquivo direto na página do embed.
+		if ( '' === $v['mp4'] && '' !== $v['embed'] && ! empty( $o['embed_extrair'] ) ) {
+			$v['mp4'] = Resolver::for_post( $post_id, $v['embed'] );
+		}
+
 		$classe = 'nexop' . ( $o['responsivo'] ? ' nexop--responsivo' : '' );
 
 		ob_start();

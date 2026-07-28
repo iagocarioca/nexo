@@ -73,6 +73,13 @@ class Frontend {
 						data-nexop-video>
 						<source src="<?php echo esc_url( $v['mp4'] ); ?>">
 					</video>
+				<?php elseif ( $o['embed_capa'] && $v['poster'] && ( $src = self::embed_src( $v['embed'] ) ) ) : ?>
+					<?php // Capa própria: nada do site de origem aparece até o clique. ?>
+					<button type="button" class="nexop__embed nexop__capa" data-nexop-embed="<?php echo esc_url( $src ); ?>"
+						style="background-image:url('<?php echo esc_url( $v['poster'] ); ?>')"
+						aria-label="<?php esc_attr_e( 'Reproduzir vídeo', 'nexo-player' ); ?>">
+						<span class="nexop__capa-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+					</button>
 				<?php else : ?>
 					<div class="nexop__embed"><?php echo self::render_embed( $v['embed'] ); // phpcs:ignore ?></div>
 				<?php endif; ?>
@@ -97,6 +104,18 @@ class Frontend {
 			echo self::relacionados( $post_id, $o ); // phpcs:ignore
 		}
 		return (string) ob_get_clean();
+	}
+
+	/** Extrai a URL do player de um embed salvo (iframe completo ou URL direta). */
+	public static function embed_src( string $embed ): string {
+		$embed = trim( $embed );
+		if ( preg_match( '/<iframe[^>]+src=["\']([^"\']+)["\']/i', $embed, $m ) ) {
+			return $m[1];
+		}
+		if ( preg_match( '#^https?://\S+$#', $embed ) ) {
+			return $embed;
+		}
+		return '';
 	}
 
 	/** Envolve o embed (iframe ou URL) num wrapper responsivo. */

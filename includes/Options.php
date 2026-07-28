@@ -33,6 +33,9 @@ class Options {
 			// Aparência.
 			'cor'            => '#fc30b7',
 			'responsivo'     => 1,
+			// Embed: mostra capa própria e só carrega o iframe do tube no clique
+			// (nada do site de origem aparece antes do play).
+			'embed_capa'     => 1,
 			// Marca d'água.
 			'logo_url'       => '',
 			'logo_pos'       => 'top-right', // top-left | top-right | bottom-left | bottom-right
@@ -46,10 +49,11 @@ class Options {
 		);
 	}
 
-	/** Todas as opções (salvas + padrões). */
+	/** Todas as opções (salvas + padrões). Temas podem ajustar via filtro. */
 	public static function all(): array {
 		$saved = get_option( self::KEY, array() );
-		return wp_parse_args( is_array( $saved ) ? $saved : array(), self::defaults() );
+		$all   = wp_parse_args( is_array( $saved ) ? $saved : array(), self::defaults() );
+		return (array) apply_filters( 'nexop_options', $all );
 	}
 
 	/** Lê uma opção. */
@@ -89,12 +93,15 @@ class Options {
 
 		$rel = get_post_meta( $post_id, '_nexop_relacionados', true );
 
-		return array(
+		$data = array(
 			'mp4'          => $mp4,
 			'embed'        => $embed,
 			'poster'       => $poster,
 			'tempo'        => (string) get_post_meta( $post_id, '_nexop_tempo', true ),
 			'relacionados' => ( '' === $rel ) ? true : ( '1' === (string) $rel ),
 		);
+
+		// Temas integram fontes próprias sem tocar no plugin (ex.: metas de outro tema).
+		return (array) apply_filters( 'nexop_video', $data, $post_id );
 	}
 }

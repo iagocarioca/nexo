@@ -48,6 +48,7 @@ class Settings {
 		$clean['continuar']        = empty( $in['continuar'] ) ? 0 : 1;
 		$clean['continuar_min']    = min( 600, max( 3, absint( $in['continuar_min'] ?? 10 ) ) );
 		$clean['responsivo']       = empty( $in['responsivo'] ) ? 0 : 1;
+		$clean['embed_capa']       = empty( $in['embed_capa'] ) ? 0 : 1;
 		$clean['cor']              = sanitize_hex_color( $in['cor'] ?? '' ) ?: Options::defaults()['cor'];
 		$clean['logo_url']         = esc_url_raw( $in['logo_url'] ?? '' );
 		$clean['logo_pos']         = in_array( $in['logo_pos'] ?? '', array( 'top-left', 'top-right', 'bottom-left', 'bottom-right' ), true ) ? $in['logo_pos'] : 'top-right';
@@ -93,6 +94,10 @@ class Settings {
 					<tr>
 						<th><?php esc_html_e( 'Responsivo', 'nexo-player' ); ?></th>
 						<td><label><input type="checkbox" name="<?php echo esc_attr( Options::KEY ); ?>[responsivo]" value="1" <?php checked( $o['responsivo'] ); ?>> <?php esc_html_e( 'Ajustar à largura da tela', 'nexo-player' ); ?></label></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Capa no embed', 'nexo-player' ); ?></th>
+						<td><label><input type="checkbox" name="<?php echo esc_attr( Options::KEY ); ?>[embed_capa]" value="1" <?php checked( $o['embed_capa'] ); ?>> <?php esc_html_e( 'Mostrar capa própria e só carregar o player do tube no clique (esconde a marca do site de origem antes do play; requer capa/thumbnail no post)', 'nexo-player' ); ?></label></td>
 					</tr>
 					<tr>
 						<th><label for="nexop_cor"><?php esc_html_e( 'Cor de destaque', 'nexo-player' ); ?></label></th>

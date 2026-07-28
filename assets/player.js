@@ -10,6 +10,25 @@
 		return m + ':' + ( r < 10 ? '0' : '' ) + r;
 	}
 
+	/* Capa do embed: o iframe do tube só entra na página no clique —
+	   antes disso, nada do site de origem aparece. */
+	document.querySelectorAll( '[data-nexop-embed]' ).forEach( function ( capa ) {
+		capa.addEventListener( 'click', function () {
+			var src    = capa.getAttribute( 'data-nexop-embed' );
+			var iframe = document.createElement( 'iframe' );
+			iframe.src = src;
+			iframe.setAttribute( 'allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture' );
+			iframe.setAttribute( 'allowfullscreen', '' );
+			iframe.setAttribute( 'frameborder', '0' );
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'referrerpolicy', 'origin' );
+			var wrap = document.createElement( 'div' );
+			wrap.className = 'nexop__embed';
+			wrap.appendChild( iframe );
+			capa.replaceWith( wrap );
+		}, { once: true } );
+	} );
+
 	document.querySelectorAll( '[data-nexop]' ).forEach( function ( box ) {
 		var video = box.querySelector( '[data-nexop-video]' );
 		if ( ! video || ! D.continuar ) {

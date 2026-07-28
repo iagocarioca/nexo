@@ -28,6 +28,194 @@
 .nexop__capa::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.18); }
 .nexop__capa-play { z-index: 2; }
 
+/* ---------------------------------------------------------------
+   Player próprio (controles custom). O <video> nasce com controls
+   nativos; o JS remove e monta esta UI — sem JS, o nativo continua.
+   --------------------------------------------------------------- */
+.nexop__palco--ui { cursor: default; }
+.nexop__palco--ui .nexop__video { cursor: pointer; }
+
+/* Camada de gradiente para dar contraste aos controles */
+.nexop-ui__sombra {
+	position: absolute; inset: auto 0 0 0; height: 150px; z-index: 3;
+	background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,.35) 45%, transparent);
+	opacity: 1; transition: opacity .25s ease; pointer-events: none;
+}
+
+/* Botão grande de play no centro.
+   Fica transparente por cima da capa (que já costuma ter um ícone de play)
+   e só ganha fundo no hover — evita dois botões empilhados. */
+.nexop-ui__grande {
+	position: absolute; inset: 0; margin: auto; z-index: 5;
+	width: 78px; height: 78px; padding: 0; border: 0; border-radius: 999px;
+	display: grid; place-items: center; cursor: pointer;
+	background: transparent; box-shadow: none;
+	transition: transform .18s ease, background .18s ease, opacity .2s ease;
+}
+.nexop-ui__grande svg {
+	width: 34px; height: 34px; fill: #fff; margin-left: 4px;
+	filter: drop-shadow(0 2px 10px rgba(0,0,0,.7)); opacity: 0;
+	transition: opacity .18s ease;
+}
+/* Sem capa, o vídeo fica preto: aí o botão precisa aparecer sozinho. */
+.nexop__palco--semcapa .nexop-ui__grande { background: rgba(28,28,30,.72); box-shadow: 0 6px 26px rgba(0,0,0,.45); }
+.nexop__palco--semcapa .nexop-ui__grande svg { opacity: 1; }
+.nexop__palco--ui:hover .nexop-ui__grande { background: rgba(28,28,30,.72); }
+.nexop__palco--ui:hover .nexop-ui__grande svg { opacity: 1; }
+.nexop-ui__grande:hover { background: var(--nexop-cor) !important; transform: scale(1.07); }
+.nexop-ui__grande[hidden] { display: none; }
+
+/* Rodinha de carregamento */
+.nexop-ui__load {
+	position: absolute; inset: 0; margin: auto; z-index: 5;
+	width: 52px; height: 52px; border-radius: 999px; pointer-events: none;
+	border: 3px solid rgba(255,255,255,.25); border-top-color: #fff;
+	animation: nexop-gira .8s linear infinite;
+}
+.nexop-ui__load[hidden] { display: none; }
+@keyframes nexop-gira { to { transform: rotate(360deg); } }
+
+/* Barra de controles */
+.nexop-ui {
+	position: absolute; inset: auto 0 0 0; z-index: 6;
+	padding: 0 14px 10px; line-height: 1;
+	font: 500 12px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	color: #fff; opacity: 1; transform: translateY(0);
+	transition: opacity .25s ease, transform .25s ease;
+}
+/* Esconde controles quando o mouse some (só durante a reprodução) */
+.nexop__palco--quieto .nexop-ui,
+.nexop__palco--quieto .nexop-ui__sombra { opacity: 0; transform: translateY(8px); pointer-events: none; }
+.nexop__palco--quieto { cursor: none; }
+
+/* Trilha de progresso */
+.nexop-ui__trilha {
+	position: relative; height: 16px; display: flex; align-items: center;
+	cursor: pointer; touch-action: none;
+}
+.nexop-ui__trilha::before {
+	content: ""; position: absolute; inset-inline: 0; height: 4px; border-radius: 3px;
+	background: rgba(255,255,255,.28); transition: height .12s ease;
+}
+.nexop-ui__buffer, .nexop-ui__preenche {
+	position: absolute; left: 0; height: 4px; border-radius: 3px;
+	transition: height .12s ease; pointer-events: none;
+}
+.nexop-ui__buffer { background: rgba(255,255,255,.45); width: 0; }
+.nexop-ui__preenche { background: var(--nexop-cor); width: 0; }
+.nexop-ui__bolinha {
+	position: absolute; z-index: 2; width: 13px; height: 13px; border-radius: 999px;
+	background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.5); left: 0;
+	transform: translateX(-50%) scale(0); transition: transform .14s ease; pointer-events: none;
+}
+.nexop-ui__trilha:hover::before,
+.nexop-ui__trilha:hover .nexop-ui__buffer,
+.nexop-ui__trilha:hover .nexop-ui__preenche { height: 6px; }
+.nexop-ui__trilha:hover .nexop-ui__bolinha,
+.nexop-ui__trilha--ativa .nexop-ui__bolinha { transform: translateX(-50%) scale(1); }
+
+/* Balãozinho com o tempo ao passar o mouse na trilha */
+.nexop-ui__dica {
+	position: absolute; bottom: 20px; z-index: 3; padding: 3px 7px; border-radius: 4px;
+	background: rgba(0,0,0,.85); font-size: 11.5px; font-variant-numeric: tabular-nums;
+	transform: translateX(-50%); opacity: 0; transition: opacity .12s ease; pointer-events: none;
+}
+.nexop-ui__trilha:hover .nexop-ui__dica { opacity: 1; }
+
+/* Linha de botões */
+.nexop-ui__linha { display: flex; align-items: center; gap: 2px; padding-top: 2px; }
+.nexop-ui__btn {
+	display: grid; place-items: center; width: 36px; height: 36px; flex: none;
+	padding: 0; border: 0; background: none; color: #fff; cursor: pointer;
+	border-radius: 6px; transition: background .15s ease, transform .15s ease;
+}
+.nexop-ui__btn svg { width: 21px; height: 21px; fill: currentColor; pointer-events: none; }
+.nexop-ui__btn:hover { background: rgba(255,255,255,.16); }
+.nexop-ui__btn:active { transform: scale(.92); }
+.nexop-ui__btn:focus-visible { outline: 2px solid var(--nexop-cor); outline-offset: -2px; }
+.nexop-ui__espaco { flex: 1 1 auto; }
+
+/* Tempo */
+.nexop-ui__tempo {
+	padding: 0 8px; font-variant-numeric: tabular-nums; font-size: 12.5px;
+	white-space: nowrap; user-select: none;
+}
+.nexop-ui__tempo i { opacity: .65; font-style: normal; margin: 0 3px; }
+
+/* Volume (a barra cresce no hover) */
+.nexop-ui__vol { display: flex; align-items: center; }
+.nexop-ui__vol-trilha {
+	width: 0; height: 30px; display: flex; align-items: center; overflow: hidden;
+	transition: width .2s ease, margin .2s ease; cursor: pointer; touch-action: none;
+}
+.nexop-ui__vol:hover .nexop-ui__vol-trilha,
+.nexop-ui__vol-trilha--ativa { width: 74px; margin-right: 6px; }
+.nexop-ui__vol-barra {
+	position: relative; width: 100%; height: 4px; border-radius: 3px;
+	background: rgba(255,255,255,.32);
+}
+.nexop-ui__vol-preenche {
+	position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: 3px; background: #fff;
+}
+
+/* Velocidade (1x) */
+.nexop-ui__vel {
+	min-width: 38px; width: auto; padding: 0 8px; font-weight: 700;
+	font-size: 12.5px; font-variant-numeric: tabular-nums;
+}
+
+/* Menu de velocidade */
+.nexop-ui__menu {
+	position: absolute; right: 10px; bottom: 52px; z-index: 7; min-width: 122px;
+	padding: 6px; border-radius: 10px; background: rgba(22,22,24,.96);
+	box-shadow: 0 10px 34px rgba(0,0,0,.5); backdrop-filter: blur(6px);
+}
+.nexop-ui__menu[hidden] { display: none; }
+.nexop-ui__menu-tit {
+	padding: 5px 10px 7px; font-size: 11px; letter-spacing: .04em;
+	text-transform: uppercase; opacity: .55;
+}
+.nexop-ui__opt {
+	display: flex; align-items: center; justify-content: space-between; gap: 12px;
+	width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; cursor: pointer;
+	background: none; color: #fff; font: 500 13px/1 inherit; text-align: left;
+}
+.nexop-ui__opt:hover { background: rgba(255,255,255,.12); }
+.nexop-ui__opt[aria-checked="true"] { color: var(--nexop-cor); font-weight: 700; }
+.nexop-ui__opt[aria-checked="true"]::after { content: "✓"; font-size: 12px; }
+
+/* Aviso central rápido (volume, velocidade, ±10s) */
+.nexop-ui__aviso {
+	position: absolute; inset: 0; margin: auto; z-index: 6;
+	width: max-content; height: max-content; padding: 10px 16px; border-radius: 8px;
+	background: rgba(0,0,0,.72); color: #fff; font: 700 15px/1 system-ui, sans-serif;
+	opacity: 0; transition: opacity .25s ease; pointer-events: none;
+}
+.nexop-ui__aviso--on { opacity: 1; transition-duration: .05s; }
+
+/* Em tela cheia o vídeo ocupa tudo */
+.nexop__palco:fullscreen { border-radius: 0; }
+.nexop__palco:fullscreen .nexop__video { max-height: none; height: 100vh; aspect-ratio: auto; }
+.nexop__palco:fullscreen .nexop-ui { padding: 0 22px 14px; }
+.nexop__palco:fullscreen .nexop-ui__btn { width: 42px; height: 42px; }
+.nexop__palco:fullscreen .nexop-ui__btn svg { width: 25px; height: 25px; }
+.nexop__palco:fullscreen .nexop-ui__tempo { font-size: 14px; }
+
+/* Telas pequenas: menos botões e alvos maiores */
+@media (max-width: 560px) {
+	.nexop-ui__btn { width: 40px; height: 40px; }
+	.nexop-ui__tempo { font-size: 12px; padding: 0 4px; }
+	.nexop-ui__opcional { display: none; }
+	.nexop-ui__vol:hover .nexop-ui__vol-trilha { width: 0; margin-right: 0; }
+	.nexop-ui__grande { width: 64px; height: 64px; }
+	.nexop-ui__grande svg { width: 28px; height: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nexop-ui, .nexop-ui__sombra, .nexop-ui__grande, .nexop-ui__bolinha { transition: none; }
+	.nexop-ui__load { animation-duration: 1.6s; }
+}
+
 /* Marca d'água */
 .nexop__logo { position: absolute; z-index: 4; pointer-events: none; line-height: 0; }
 .nexop__logo[href] { pointer-events: auto; }
@@ -39,13 +227,15 @@
 
 /* Continuar assistindo (barra sobre o vídeo) */
 .nexop__retomar {
-	position: absolute; left: 14px; bottom: 14px; z-index: 5;
+	position: absolute; left: 14px; bottom: 14px; z-index: 7;
 	display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px;
 	background: rgba(0,0,0,.75); color: #fff; border: 0; border-radius: 999px;
 	font: 600 13px/1 inherit; cursor: pointer; backdrop-filter: blur(4px);
 }
 .nexop__retomar b { color: var(--nexop-cor); }
 .nexop__retomar:hover { background: rgba(0,0,0,.9); }
+/* Com os controles próprios, sobe para não cobrir a barra. */
+.nexop__palco--ui .nexop__retomar { bottom: 62px; }
 
 /* Códigos extras */
 .nexop__extra { margin: 10px 0; text-align: center; }

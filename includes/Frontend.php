@@ -60,9 +60,16 @@ class Frontend {
 
 		$o = Options::all();
 
-		// Sem MP4 próprio: tenta pegar o arquivo direto na página do embed.
-		if ( '' === $v['mp4'] && '' !== $v['embed'] && ! empty( $o['embed_extrair'] ) ) {
-			$v['mp4'] = Resolver::for_post( $post_id, $v['embed'] );
+		// MP4 vindo do embed: a URL do CDN é assinada e vence em poucas horas.
+		// Se a que está salva no campo já venceu, extrai de novo na hora.
+		if ( '' !== $v['embed'] && ! empty( $o['embed_extrair'] ) && ( '' === $v['mp4'] || Resolver::vencida( $v['mp4'] ) ) ) {
+			$novo = Resolver::for_post( $post_id, $v['embed'] );
+			if ( '' !== $novo ) {
+				$v['mp4'] = $novo;
+			} elseif ( '' !== $v['mp4'] && Resolver::vencida( $v['mp4'] ) ) {
+				// Não renovou e a salva está vencida: melhor o iframe que um vídeo quebrado.
+				$v['mp4'] = '';
+			}
 		}
 
 		$classe = 'nexop' . ( $o['responsivo'] ? ' nexop--responsivo' : '' );

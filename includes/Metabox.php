@@ -93,8 +93,8 @@ class Metabox {
 				<span class="description" id="nexop_extrair_status">
 					<?php
 					echo $auto
-						? esc_html__( 'MP4 encontrado:', 'nexo-player' ) . ' ' . esc_html( $auto )
-						: esc_html__( 'Busca html5player.setVideoUrlLow na página do embed e toca no player próprio.', 'nexo-player' );
+						? esc_html__( 'MP4 já extraído deste embed — clique para atualizar.', 'nexo-player' )
+						: esc_html__( 'Busca html5player.setVideoUrlLow na página do embed e preenche o campo "Link do vídeo (MP4)" acima.', 'nexo-player' );
 					?>
 				</span>
 			</p>

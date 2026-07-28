@@ -3,7 +3,7 @@
  * Plugin Name: Nexo Player
  * Plugin URI:  https://pornoreels.blog
  * Description: Player de vídeo para posts: MP4 próprio ou embed de tubes, com capa, marca d'água, vídeos relacionados, "continuar assistindo" e códigos extras (ads/analytics).
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      Nexo
  * Text Domain: nexo-player
  * License:     GPL-2.0-or-later
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'NEXOP_VERSION', '1.1.0' );
+define( 'NEXOP_VERSION', '1.1.1' );
 define( 'NEXOP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NEXOP_URL', plugin_dir_url( __FILE__ ) );
 define( 'NEXOP_FILE', __FILE__ );

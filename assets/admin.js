@@ -30,7 +30,9 @@ jQuery( function ( $ ) {
 			embed:   $( '#nexop_embed' ).val()
 		} ).done( function ( r ) {
 			if ( r && r.success ) {
-				status.text( 'MP4 encontrado: ' + r.data.mp4 );
+				// Joga a URL no campo do MP4: é ela que o player usa.
+				$( '#nexop_mp4' ).val( r.data.mp4 ).trigger( 'change' );
+				status.text( 'MP4 extraído e colocado no campo acima. Salve o post.' );
 			} else {
 				status.text( ( r && r.data && r.data.msg ) || 'Não consegui extrair.' );
 			}
